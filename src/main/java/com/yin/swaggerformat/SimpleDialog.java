@@ -1,6 +1,15 @@
 package com.yin.swaggerformat;
 
 import com.esotericsoftware.minlog.Log;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.JavaCodeStyleManager;
+import com.intellij.psi.util.PsiTreeUtil;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -10,9 +19,13 @@ public class SimpleDialog extends JDialog {
     private JButton buttonOK;
     private JButton buttonCancel;
     private JTextArea textArea;
-    private JTextField textField;
+    AnActionEvent anActionEvent;
 
-    public SimpleDialog() {
+    private Project project;
+    private PsiClass psiClass;
+
+    public SimpleDialog(AnActionEvent anActionEvent) {
+        this.anActionEvent = anActionEvent;
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
@@ -47,17 +60,40 @@ public class SimpleDialog extends JDialog {
 
     private void onOK() {
         // add your code here
-        if(textArea !=null){
+        if (textArea != null) {
             String text = textArea.getText().trim().toString();
-            Log.error("input text : "+text+"\n :难道是输入的字符串的问题 ");
+            Log.error("input text : " + text + "\n :�ѵ���������ַ��������� ");
             String s = ParseUtils.parseString(text);
-//
-//            targetClass.add(factory.createMethodFromText(s, targetClass));
-//
-//            // 导入需要的类
-//            JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
-//            styleManager.optimizeImports(file);
-//            styleManager.shortenClassReferences(targetClass);
+            project = anActionEvent.getData(PlatformDataKeys.PROJECT);
+
+            PsiFile psiFile = anActionEvent.getData(LangDataKeys.PSI_FILE);
+            Editor editor = anActionEvent.getData(PlatformDataKeys.EDITOR);
+
+            if (psiFile == null || editor == null || project == null) {
+                return;
+            }
+
+
+
+            int offset = editor.getCaretModel().getOffset();
+            PsiElement element = psiFile.findElementAt(offset);
+
+            PsiClass targetClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
+
+
+            WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+                @Override
+                public void run() {
+                    PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
+                    if (targetClass != null) {
+                        targetClass.add(factory.createClassFromText(s, null));
+                        JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
+                        styleManager.optimizeImports(psiFile);
+                        styleManager.shortenClassReferences(targetClass);
+                    }                }
+            });
+
+
             dispose();
         }
     }
@@ -72,4 +108,5 @@ public class SimpleDialog extends JDialog {
 //        dialog.setVisible(true);
 //        System.exit(0);
 //    }
+
 }

@@ -23,9 +23,9 @@ public class MainAction extends AnAction {
 //            }
 //        });
 
-        SimpleDialog simpleDialog = new SimpleDialog();
+        SimpleDialog simpleDialog = new SimpleDialog(e);
         simpleDialog.pack();
-        simpleDialog.setSize(800, 400);
+        simpleDialog.setSize(800, 600);
         simpleDialog.setAlwaysOnTop(false);
         simpleDialog.setLocationRelativeTo(null);
         simpleDialog.setVisible(true);

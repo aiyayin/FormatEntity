@@ -13,7 +13,6 @@ public class ParseUtils {
 
 
     public static String parseString(String paramsstr) {
-        Log.error("输入的内容 : " + paramsstr);
         StringBuilder result = new StringBuilder("public class ");
         String a = paramsstr;
         ByteArrayInputStream is = new ByteArrayInputStream(a.getBytes());
@@ -22,6 +21,7 @@ public class ParseUtils {
         int titleIndex = a.indexOf("{");
         String fileName = titleIndex > 0 ? a.substring(0, titleIndex) : "EntityClass";
         result.append(fileName);
+        result.append("{");
         result.append("\n");
         int totolline = 0;
         String line;
@@ -34,8 +34,10 @@ public class ParseUtils {
                     int index2 = line.indexOf(",");
                     int index3 = line.indexOf(":");
                     String name = line.substring(0, index1);
-                    String type = line.substring(index1+1, index1+2).toUpperCase() + line.substring(index1+2, index2);
-                    String description = line.substring(index3+1);
+                    String type = line.substring(index1 + 1, index2);
+                    type = type.replace("integer", "int");
+                    type = type.replace("string", "String");
+                    String description = line.substring(index3 + 1, line.length() - 1);
                     line = "public " + type + " " + name + " //" + description + ";";
                     result.append(line);
                     result.append("\n");
