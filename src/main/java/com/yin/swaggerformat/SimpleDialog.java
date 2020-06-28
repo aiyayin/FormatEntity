@@ -1,6 +1,5 @@
 package com.yin.swaggerformat;
 
-import com.esotericsoftware.minlog.Log;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -13,16 +12,16 @@ import com.intellij.psi.util.PsiTreeUtil;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.util.List;
 
 public class SimpleDialog extends JDialog {
-    private JPanel contentPane;
-    private JButton buttonOK;
-    private JButton buttonCancel;
-    private JTextArea textArea;
     AnActionEvent anActionEvent;
-
+    private JButton buttonCancel;
+    private JButton buttonOK;
+    private JPanel contentPane;
     private Project project;
     private PsiClass psiClass;
+    private JTextArea textArea;
 
     public SimpleDialog(AnActionEvent anActionEvent) {
         this.anActionEvent = anActionEvent;
@@ -62,8 +61,8 @@ public class SimpleDialog extends JDialog {
         // add your code here
         if (textArea != null) {
             String text = textArea.getText().trim().toString();
-            Log.error("input text : " + text + "\n :�ѵ���������ַ��������� ");
-            String s = ParseUtils.parseString(text);
+            String name = ParseUtils.getClassNameString(text);
+            List<String> fieldList = ParseUtils.parseString(text);
             project = anActionEvent.getData(PlatformDataKeys.PROJECT);
 
             PsiFile psiFile = anActionEvent.getData(LangDataKeys.PSI_FILE);
@@ -72,7 +71,6 @@ public class SimpleDialog extends JDialog {
             if (psiFile == null || editor == null || project == null) {
                 return;
             }
-
 
 
             int offset = editor.getCaretModel().getOffset();
@@ -86,11 +84,23 @@ public class SimpleDialog extends JDialog {
                 public void run() {
                     PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
                     if (targetClass != null) {
-                        targetClass.add(factory.createClassFromText(s, null));
-                        JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
-                        styleManager.optimizeImports(psiFile);
-                        styleManager.shortenClassReferences(targetClass);
-                    }                }
+                        PsiClass classFromText = factory.createClassFromText(name, targetClass);
+                        PsiClass[] classFromTextInnerClasses = classFromText.getInnerClasses();
+                        if (classFromTextInnerClasses.length > 0) {
+                            PsiClass innerClass = classFromTextInnerClasses[0];
+                            if (innerClass != null && fieldList.size() > 0)
+                                for (String fieldString : fieldList) {
+                                    innerClass.add(factory.createFieldFromText(fieldString, innerClass));
+                                }
+                            if (innerClass != null) {
+                                targetClass.add(innerClass);
+                            }
+                            JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
+                            styleManager.optimizeImports(psiFile);
+                            styleManager.shortenClassReferences(targetClass);
+                        }
+                    }
+                }
             });
 
 

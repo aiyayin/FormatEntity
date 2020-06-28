@@ -1,10 +1,12 @@
 package com.yin.swaggerformat;
 
-import com.esotericsoftware.minlog.Log;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/11/19.
@@ -12,24 +14,36 @@ import java.io.InputStreamReader;
 public class ParseUtils {
 
 
-    public static String parseString(String paramsstr) {
+    public static String getClassNameString(String paramsstr) {
         StringBuilder result = new StringBuilder("public class ");
+        int titleIndex = paramsstr.indexOf("{");
+        String fileName = titleIndex > 0 ? paramsstr.substring(0, titleIndex) : getDefaultClassName();
+        result.append(fileName);
+        result.append("{");
+        result.append("\n");
+        result.append("}");
+        return result.toString();
+    }
+
+    private static String getDefaultClassName() {
+        String name = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss"));
+        return "Entity"+name + "VO";
+    }
+
+    public static List<String> parseString(String paramsstr) {
+        List<String> field = new ArrayList();
         String a = paramsstr;
         ByteArrayInputStream is = new ByteArrayInputStream(a.getBytes());
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         // br.readLine()
-        int titleIndex = a.indexOf("{");
-        String fileName = titleIndex > 0 ? a.substring(0, titleIndex) : "EntityClass";
-        result.append(fileName);
-        result.append("{");
-        result.append("\n");
+
         int totolline = 0;
         String line;
-        // 读取文件，并对读取到的文件进行操作
         try {
             while ((line = br.readLine()) != null) {
                 totolline++;
                 if (line.endsWith(",")) {
+                    StringBuilder result = new StringBuilder("public ");
                     int index1 = line.indexOf("(");
                     int index2 = line.indexOf(",");
                     int index3 = line.indexOf(":");
@@ -38,13 +52,18 @@ public class ParseUtils {
                     type = type.replace("integer", "int");
                     type = type.replace("string", "String");
                     String description = line.substring(index3 + 1, line.length() - 1);
-                    line = "public " + type + " " + name + " //" + description + ";";
-                    result.append(line);
+                    result.append(type);
+                    result.append(" ");
+                    result.append(name);
+                    result.append("; //");
+                    result.append(description);
+                    result.append(";");
                     result.append("\n");
+                    field.add(result.toString());
                 }
 
             }
-            result.append("}");
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -58,9 +77,7 @@ public class ParseUtils {
 
         }
 
-        String s = result.toString();
-        Log.error("替换后的结果 : " + s);
-        return s;
+        return field;
 
     }
 
