@@ -14,6 +14,8 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.util.List;
 
+import static android.util.Log.e;
+
 public class SimpleDialog extends JDialog {
     AnActionEvent anActionEvent;
     private JButton buttonCancel;
@@ -61,8 +63,12 @@ public class SimpleDialog extends JDialog {
         // add your code here
         if (textArea != null) {
             String text = textArea.getText().trim().toString();
-            String name = ParseUtils.getClassNameString(text);
-            List<String> fieldList = ParseUtils.parseString(text);
+            String[] strings = ClassParseUtils.getVoNum(text);
+            if (strings == null || strings.length <= 0) {
+                e("SimpleDialog>", "input string is error or null");
+                return;
+            }
+
             project = anActionEvent.getData(PlatformDataKeys.PROJECT);
 
             PsiFile psiFile = anActionEvent.getData(LangDataKeys.PSI_FILE);
@@ -77,32 +83,34 @@ public class SimpleDialog extends JDialog {
             PsiElement element = psiFile.findElementAt(offset);
 
             PsiClass targetClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
-
-
-            WriteCommandAction.runWriteCommandAction(project, new Runnable() {
-                @Override
-                public void run() {
-                    PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
-                    if (targetClass != null) {
-                        PsiClass classFromText = factory.createClassFromText(name, targetClass);
-                        PsiClass[] classFromTextInnerClasses = classFromText.getInnerClasses();
-                        if (classFromTextInnerClasses.length > 0) {
-                            PsiClass innerClass = classFromTextInnerClasses[0];
-                            if (innerClass != null && fieldList.size() > 0)
-                                for (String fieldString : fieldList) {
-                                    innerClass.add(factory.createFieldFromText(fieldString, innerClass));
+            for (String txt: strings) {
+                String name = ClassParseUtils.getClassNameString(txt);
+                List<String> fieldList = ClassParseUtils.parseString(txt);
+                WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+                    @Override
+                    public void run() {
+                        PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
+                        if (targetClass != null) {
+                            PsiClass classFromText = factory.createClassFromText(name, targetClass);
+                            PsiClass[] classFromTextInnerClasses = classFromText.getInnerClasses();
+                            if (classFromTextInnerClasses.length > 0) {
+                                PsiClass innerClass = classFromTextInnerClasses[0];
+                                if (innerClass != null && fieldList.size() > 0)
+                                    for (String fieldString : fieldList) {
+                                        innerClass.add(factory.createFieldFromText(fieldString, innerClass));
+                                    }
+                                if (innerClass != null) {
+                                    targetClass.add(innerClass);
                                 }
-                            if (innerClass != null) {
-                                targetClass.add(innerClass);
+                                JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
+                                styleManager.optimizeImports(psiFile);
+                                styleManager.shortenClassReferences(targetClass);
                             }
-                            JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
-                            styleManager.optimizeImports(psiFile);
-                            styleManager.shortenClassReferences(targetClass);
                         }
                     }
-                }
-            });
+                });
 
+            }
 
             dispose();
         }

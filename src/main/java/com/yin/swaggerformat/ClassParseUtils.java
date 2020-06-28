@@ -1,5 +1,7 @@
 package com.yin.swaggerformat;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -11,13 +13,15 @@ import java.util.List;
 /**
  * Created by Administrator on 2016/11/19.
  */
-public class ParseUtils {
+public class ClassParseUtils {
 
-
-    public static String getClassNameString(String paramsstr) {
+    public static String getClassNameString(String string) {
+        if (checkInputStringIsNull(string)) {
+            return getDefaultClassName();
+        }
         StringBuilder result = new StringBuilder("public class ");
-        int titleIndex = paramsstr.indexOf("{");
-        String fileName = titleIndex > 0 ? paramsstr.substring(0, titleIndex) : getDefaultClassName();
+        int titleIndex = string.indexOf("{");
+        String fileName = titleIndex > 0 ? string.substring(0, titleIndex) : getDefaultClassName();
         result.append(fileName);
         result.append("{");
         result.append("\n");
@@ -25,14 +29,21 @@ public class ParseUtils {
         return result.toString();
     }
 
-    private static String getDefaultClassName() {
-        String name = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss"));
-        return "Entity"+name + "VO";
+    private static boolean checkInputStringIsNull(String inputString) {
+        return inputString == null || inputString.length() == 0;
     }
 
-    public static List<String> parseString(String paramsstr) {
+    private static String getDefaultClassName() {
+        String name = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss"));
+        return "Entity" + name + "VO";
+    }
+
+    public static List<String> parseString(String string) {
         List<String> field = new ArrayList();
-        String a = paramsstr;
+        if (checkInputStringIsNull(string)) {
+            return field;
+        }
+        String a = string;
         ByteArrayInputStream is = new ByteArrayInputStream(a.getBytes());
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         // br.readLine()
@@ -81,5 +92,20 @@ public class ParseUtils {
 
     }
 
+
+
+    public static String[] getVoNum(String inputString){
+        if (checkInputStringIsNull(inputString)) {
+            return null;
+        }
+        String[] endStrings = inputString.split("}");
+        int endNum = endStrings.length;
+        int startNum = StringUtils.countMatches(inputString, "{");
+        if (endNum == startNum) {
+            return endStrings;
+        }
+        return null;
+
+    }
 
 }
