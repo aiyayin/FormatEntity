@@ -12,6 +12,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import static android.util.Log.e;
@@ -63,7 +64,7 @@ public class SimpleDialog extends JDialog {
         // add your code here
         if (textArea != null) {
             String text = textArea.getText().trim().toString();
-            String[] strings = ClassParseUtils.getVoNum(text);
+            String[] strings = ClassParseUtils.getInstance().getVoNum(text);
             if (strings == null || strings.length <= 0) {
                 e("SimpleDialog>", "input string is error or null");
                 return;
@@ -83,9 +84,10 @@ public class SimpleDialog extends JDialog {
             PsiElement element = psiFile.findElementAt(offset);
 
             PsiClass targetClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
-            for (String txt: strings) {
-                String name = ClassParseUtils.getClassNameString(txt);
-                List<String> fieldList = ClassParseUtils.parseString(txt);
+            for (int i = strings.length - 1; i >= 0; i--) {
+                String txt = strings[i];
+                List<String> fieldList = new ArrayList<>();
+                String name = ClassParseUtils.getInstance().getClassNameStringAndField(txt, fieldList);
                 WriteCommandAction.runWriteCommandAction(project, new Runnable() {
                     @Override
                     public void run() {

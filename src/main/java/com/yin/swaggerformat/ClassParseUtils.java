@@ -1,10 +1,8 @@
 package com.yin.swaggerformat;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.util.TextUtils;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -14,87 +12,132 @@ import java.util.List;
  * Created by Administrator on 2016/11/19.
  */
 public class ClassParseUtils {
+    public static ClassParseUtils classParseUtils;
 
-    public static String getClassNameString(String string) {
-        if (checkInputStringIsNull(string)) {
+    public static ClassParseUtils getInstance() {
+        if (classParseUtils == null) {
+            classParseUtils = new ClassParseUtils();
+        }
+        return classParseUtils;
+    }
+
+    public String getClassNameStringAndField(String sourceString, List<String> field) {
+        if (checkInputStringIsNull(sourceString)) {
             return getDefaultClassName();
         }
         StringBuilder result = new StringBuilder("public class ");
-        int titleIndex = string.indexOf("{");
-        String fileName = titleIndex > 0 ? string.substring(0, titleIndex) : getDefaultClassName();
+        int titleIndex = sourceString.indexOf("{");
+
+        String fileName = titleIndex > 0 ? sourceString.substring(0, titleIndex) : getDefaultClassName();
+        fileName = fileName.replaceAll("\\s*", "");
+        fileName = handleName(fileName);
         result.append(fileName);
         result.append("{");
         result.append("\n");
         result.append("}");
+        if (field == null) {
+            field = new ArrayList();
+        }
+
+        try {
+            String a = sourceString.substring(titleIndex + 1);
+            String[] strings = a.split(",\n");
+            if (strings.length > 0)
+                for (String line : strings) {
+                    if (line.contains("optional)")) {
+                        line = line.replaceAll("\n", "");
+                        StringBuilder fieldString = new StringBuilder("public ");
+                        int index1 = line.indexOf("(");
+                        int index2 = line.indexOf(",");
+                        int index3 = line.indexOf(":");
+                        String name = "";
+                        if (index1 > 0) {
+                            name = line.substring(0, index1);
+                        }
+                        name = handleName(name);
+                        String type = "";
+                        if (index2 > index1) {
+                            type = line.substring(index1 + 1, index2);
+                        }
+                        type = handleType(type);
+                        String description = "";
+                        if (index3 > index2 && (index3 + 1) < line.length()) {
+                            description = line.substring(index3 + 1);
+                        }
+                        fieldString.append(type);
+                        fieldString.append(" ");
+                        fieldString.append(name);
+                        fieldString.append(";");
+                        if (!TextUtils.isEmpty(description)) {
+                            fieldString.append(" //");
+                            fieldString.append(description);
+                        }
+                        fieldString.append("\n");
+                        field.add(fieldString.toString());
+                    }
+                }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return result.toString();
     }
 
-    private static boolean checkInputStringIsNull(String inputString) {
+    private boolean checkInputStringIsNull(String inputString) {
         return inputString == null || inputString.length() == 0;
     }
 
-    private static String getDefaultClassName() {
+    private String getDefaultClassName() {
         String name = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss"));
         return "Entity" + name + "VO";
     }
 
-    public static List<String> parseString(String string) {
-        List<String> field = new ArrayList();
-        if (checkInputStringIsNull(string)) {
-            return field;
-        }
-        String a = string;
-        ByteArrayInputStream is = new ByteArrayInputStream(a.getBytes());
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        // br.readLine()
-
-        int totolline = 0;
-        String line;
-        try {
-            while ((line = br.readLine()) != null) {
-                totolline++;
-                if (line.endsWith(",")) {
-                    StringBuilder result = new StringBuilder("public ");
-                    int index1 = line.indexOf("(");
-                    int index2 = line.indexOf(",");
-                    int index3 = line.indexOf(":");
-                    String name = line.substring(0, index1);
-                    String type = line.substring(index1 + 1, index2);
-                    type = type.replace("integer", "int");
-                    type = type.replace("string", "String");
-                    String description = line.substring(index3 + 1, line.length() - 1);
-                    result.append(type);
-                    result.append(" ");
-                    result.append(name);
-                    result.append("; //");
-                    result.append(description);
-                    result.append(";");
-                    result.append("\n");
-                    field.add(result.toString());
-                }
-
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                br.close();
-                is.close();
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-        }
-
-        return field;
-
+    private String handleName(String name) {
+        name = handleSpace(name);
+        name = handleUnderline(name);
+        return name;
     }
 
+    private String handleType(String type) {
+        if (TextUtils.isEmpty(type)) {
+            return "String";
+        }
+        if (type.contains("Array")) {
+            type = type.replace("Array", "java.util.List");
+            type = type.replace("[", "<");
+            type = type.replace("]", ">");
+        }
+        if (type.contains("integer"))
+            return type.replace("integer", "int");
+        if (type.contains("string"))
+            return type.replace("string", "String");
+        if (type.contains("number"))
+            return type.replace("number", "String");
+        return type;
+    }
 
+    private String handleSpace(String name) {
+        int index = name.indexOf(" ", 0);
+        while (index >= 0 && (index + 2) < name.length()) {
+            String c = String.valueOf(name.charAt(index + 1));
+            name = name.substring(0, index) + c.toUpperCase() + name.substring(index + 2);
+            index = name.indexOf(" ", index);
+            index++;
+        }
+        return name;
+    }
 
-    public static String[] getVoNum(String inputString){
+    private String handleUnderline(String name) {
+        int index = name.indexOf("_", 0);
+        while (index >= 0 && (index + 2) < name.length()) {
+            String c = String.valueOf(name.charAt(index + 1));
+            name = name.substring(0, index) + c.toUpperCase() + name.substring(index + 2);
+            index = name.indexOf("_", index);
+        }
+        return name;
+    }
+
+    public String[] getVoNum(String inputString) {
         if (checkInputStringIsNull(inputString)) {
             return null;
         }
@@ -107,5 +150,6 @@ public class ClassParseUtils {
         return null;
 
     }
+
 
 }
