@@ -6,10 +6,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class YaPiClassParseUtil extends ClassParseUtil {
     @Override
-    public String getClassNameStringAndField(String inputName,String sourceString, List<String> field) {
+    public String getClassNameStringAndField(String inputName, String sourceString, List<String> field) {
         if (checkInputStringIsNull(sourceString)) {
             return getDefaultClassName();
         }
@@ -30,29 +32,35 @@ public class YaPiClassParseUtil extends ClassParseUtil {
 
         try {
             String a = sourceString.substring(titleIndex + 1);
-            a = a.replaceAll("\n", "");
-            String[] strings = a.split("\t");
-            if (strings.length > 0)
-                for (int i = 0, stringsLength = strings.length; i < stringsLength; i = i + 5) {
-                    String name = strings[i];
-                    String type = strings[i + 1];
-                    String description = strings[i + 4];
-                    name = handleName(name);
-                    type = handleType(type);
-
-                    StringBuilder fieldString = new StringBuilder("public ");
-                    fieldString.append(type);
-                    fieldString.append(" ");
-                    fieldString.append(name);
-                    fieldString.append(";");
-                    if (!TextUtils.isEmpty(description)) {
-                        fieldString.append(" //");
-                        fieldString.append(description);
+            Pattern pattern = Pattern.compile("(\\n|\\t)+"); //去掉空格符合换行符
+            Matcher matcher = pattern.matcher(a);
+            a = matcher.replaceAll("#");
+            String[] strings = a.split("#");
+            if (strings.length > 0) {
+                int i = 0, stringsLength = strings.length;
+                String name = "";
+                String type = "";
+                String description = "";
+                do {
+                    String string = strings[i];
+                    Pattern patternstring = Pattern.compile("([A-Za-z]|\\[|\\]|_)+"); //去掉空格符合换行符
+                    Matcher matcherstring = patternstring.matcher(string);
+                    boolean matches = matcherstring.matches();
+                    if (matches) {
+                        if (i > 0) {
+                            buildFieldString(name, type, description, field);
+                        }
+                        name = string;
+                        type = strings[i + 1];
+                        i = i + 2;
+                        description = "";
+                    } else {
+                        description = description + strings[i];
+                        i++;
                     }
-                    fieldString.append("\n");
-                    field.add(fieldString.toString());
-
-                }
+                } while (i < stringsLength);
+                buildFieldString(name, type, description, field);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -75,22 +83,21 @@ public class YaPiClassParseUtil extends ClassParseUtil {
         return name;
     }
 
-    private String handleType(String type) {
-        if (TextUtils.isEmpty(type)) {
-            return "String";
+    private void buildFieldString(String name, String type, CharSequence description, List<String> field) {
+        name = handleName(name);
+        type = handleType(type);
+
+        StringBuilder fieldString = new StringBuilder("public ");
+        fieldString.append(type);
+        fieldString.append(" ");
+        fieldString.append(name);
+        fieldString.append(";");
+        if (!TextUtils.isEmpty(description)) {
+            fieldString.append(" //");
+            fieldString.append(description);
         }
-        if (type.contains("Array")) {
-            type = type.replace("Array", "java.util.List");
-            type = type.replace("[", "<");
-            type = type.replace("]", ">");
-        }
-        if (type.contains("integer"))
-            return type.replace("integer", "int");
-        if (type.contains("string"))
-            return type.replace("string", "String");
-        if (type.contains("number"))
-            return type.replace("number", "String");
-        return type;
+        fieldString.append("\n");
+        field.add(fieldString.toString());
     }
 
     private String handleSpace(String name) {
@@ -112,6 +119,23 @@ public class YaPiClassParseUtil extends ClassParseUtil {
             index = name.indexOf("_", index);
         }
         return name;
+    }
+
+    private String handleType(String type) {
+        if (TextUtils.isEmpty(type)) {
+            return "String";
+        }
+        if (type.contains("[") && type.contains("]")) {
+            type = type.substring(0, type.indexOf("["));
+            type = "java.util.List<" + type + ">";
+        }
+        if (type.contains("integer"))
+            return type.replace("integer", "int");
+        if (type.contains("string"))
+            return type.replace("string", "String");
+        if (type.contains("number"))
+            return type.replace("number", "String");
+        return type;
     }
 
     @Override
