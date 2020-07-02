@@ -21,8 +21,7 @@
         <!-- Add your actions here -->
         <action id="MainAction" class="com.yin.swaggerformat.MainAction" text="Swagger Gson format"
                 description="Swagger Gson format">
-            <add-to-group group-id="EditMenu" anchor="first"/>
-            <keyboard-shortcut keymap="$default" first-keystroke="alt G"/>
+            <add-to-group group-id="GenerateGroup" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>

@@ -15,23 +15,37 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.util.Log.e;
-
 public class SimpleDialog extends JDialog {
+    public static int SWAGGER = 1;
+    public static int YAPI = 2;
     AnActionEvent anActionEvent;
     private JButton buttonCancel;
     private JButton buttonOK;
+    private JComboBox comboBox1;
     private JPanel contentPane;
     private Project project;
-    private PsiClass psiClass;
     private JTextArea textArea;
+    private int type = YAPI;
+    private JTextField yapiEntityNameTextField;
 
     public SimpleDialog(AnActionEvent anActionEvent) {
         this.anActionEvent = anActionEvent;
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
-
+        yapiEntityNameTextField.setVisible(type == YAPI);
+        comboBox1.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                Object[] selectedObjects = e.getItemSelectable().getSelectedObjects();
+                if (selectedObjects.length > 0 && "Yapi".equals(selectedObjects[0].toString())) {
+                    type = YAPI;
+                } else {
+                    type = SWAGGER;
+                }
+                yapiEntityNameTextField.setVisible(type == YAPI);
+            }
+        });
         buttonOK.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 onOK();
@@ -64,9 +78,10 @@ public class SimpleDialog extends JDialog {
         // add your code here
         if (textArea != null) {
             String text = textArea.getText().trim().toString();
-            String[] strings = ClassParseUtils.getInstance().getVoNum(text);
+            ClassParseUtil parseUtil = ClassParseUtil.getInstance(type);
+            String[] strings = parseUtil.getVoNum(text);
             if (strings == null || strings.length <= 0) {
-                e("SimpleDialog>", "input string is error or null");
+//                e("SimpleDialog>", "input string is error or null");
                 return;
             }
 
@@ -87,7 +102,8 @@ public class SimpleDialog extends JDialog {
             for (int i = strings.length - 1; i >= 0; i--) {
                 String txt = strings[i];
                 List<String> fieldList = new ArrayList<>();
-                String name = ClassParseUtils.getInstance().getClassNameStringAndField(txt, fieldList);
+                String name = parseUtil.getClassNameStringAndField(type == YAPI ? yapiEntityNameTextField.getText().trim() : "", txt, fieldList);
+
                 WriteCommandAction.runWriteCommandAction(project, new Runnable() {
                     @Override
                     public void run() {
@@ -119,14 +135,7 @@ public class SimpleDialog extends JDialog {
     }
 
     private void onCancel() {
-        // add your code here if necessary
         dispose();
     }
-//    public static void main(String[] args) {
-//        SimpleDialog dialog = new SimpleDialog();
-//        dialog.pack();
-//        dialog.setVisible(true);
-//        System.exit(0);
-//    }
 
 }
