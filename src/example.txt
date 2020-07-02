@@ -1,0 +1,42 @@
+#swagger
+ActivityConfigVO {
+activityName (string, optional): 活动名称 ,
+activityUrl (string, optional): 活动链接 
+}
+
+
+TabRemarkListVO {
+eventMarketing (Array[TabRemarkVO], optional):
+
+活动营销 ,
+merchantPromise (Array[TabRemarkVO], optional):
+
+商户承诺
+}
+TabRemarkVO {
+remark (string, optional):
+
+标签内容 ,
+tabTitle (string, optional):
+
+标签名称
+} 
+
+
+ActivityConfigVO2 {
+start_time (integer, optional): 活动开始时间 ,
+update time (integer, optional): 修改时间 ,
+update_User (integer, optional): 修改人ID ,
+update UserStr (string, optional): 修改人名称
+}
+
+#yapi
+companyId	integer	
+非必须
+	
+	公司id	
+isAd	integer	
+非必须
+	
+	是否为广告（1为广告公司，0为非广告公司）
+

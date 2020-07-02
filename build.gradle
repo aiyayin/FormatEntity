@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'org.example'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 repositories {
     mavenCentral()
@@ -17,13 +17,14 @@ dependencies {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     version '2020.1.2'
+    pluginName 'SwaggerFormat'
     type 'AI'
-    plugins 'android', 'java'}
+    updateSinceUntilBuild false
+    plugins 'android', 'java'
 
-
-
-patchPluginXml {
-    changeNotes """
+    patchPluginXml {
+        changeNotes """
       Add change notes here.<br>
       <em>most HTML tags may be used</em>"""
+    }
 }

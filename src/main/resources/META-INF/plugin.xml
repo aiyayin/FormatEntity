@@ -1,18 +1,19 @@
 <idea-plugin>
     <id>org.example.SwaggerFormat</id>
-    <name>Plugin display name here</name>
-    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
-
-    <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
-    ]]></description>
+    <name>SwaggerFormat</name>
+    <vendor email="ying.fu@corp.to8to.com">yin</vendor>
+    <depends>com.intellij.modules.lang</depends>
+    <!--    <description><![CDATA[-->
+    <!--    Enter short description for your plugin here.<br>-->
+    <!--    <em>most HTML tags may be used</em>-->
+    <!--    ]]></description>-->
 
     <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
-
+    <idea-version since-build="160.0"/>
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
     </extensions>
