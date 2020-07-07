@@ -4,8 +4,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -23,6 +25,7 @@ public class SimpleDialog extends JDialog {
     private JButton buttonOK;
     private JComboBox comboBox1;
     private JPanel contentPane;
+    private JCheckBox justInsertAttributesCheckBox;
     private Project project;
     private JTextArea textArea;
     private int type = YAPI;
@@ -79,9 +82,16 @@ public class SimpleDialog extends JDialog {
         if (textArea != null) {
             String text = textArea.getText().trim().toString();
             ClassParseUtil parseUtil = ClassParseUtil.getInstance(type);
-            String[] strings = parseUtil.getVoNum(text);
+            boolean isJustField = justInsertAttributesCheckBox.isSelected();
+            String[] strings;
+            if (isJustField) {
+                strings = new String[]{text};
+            } else {
+                strings = parseUtil.getVoNum(text);
+            }
             if (strings == null || strings.length <= 0) {
-//                e("SimpleDialog>", "input string is error or null");
+                Messages.showErrorDialog("input string is error or null",
+                        "Warn");
                 return;
             }
 
@@ -97,7 +107,7 @@ public class SimpleDialog extends JDialog {
 
             int offset = editor.getCaretModel().getOffset();
             PsiElement element = psiFile.findElementAt(offset);
-
+            PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
             PsiClass targetClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
             for (int i = strings.length - 1; i >= 0; i--) {
                 String txt = strings[i];
@@ -107,23 +117,10 @@ public class SimpleDialog extends JDialog {
                 WriteCommandAction.runWriteCommandAction(project, new Runnable() {
                     @Override
                     public void run() {
-                        PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
-                        if (targetClass != null) {
-                            PsiClass classFromText = factory.createClassFromText(name, targetClass);
-                            PsiClass[] classFromTextInnerClasses = classFromText.getInnerClasses();
-                            if (classFromTextInnerClasses.length > 0) {
-                                PsiClass innerClass = classFromTextInnerClasses[0];
-                                if (innerClass != null && fieldList.size() > 0)
-                                    for (String fieldString : fieldList) {
-                                        innerClass.add(factory.createFieldFromText(fieldString, innerClass));
-                                    }
-                                if (innerClass != null) {
-                                    targetClass.add(innerClass);
-                                }
-                                JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
-                                styleManager.optimizeImports(psiFile);
-                                styleManager.shortenClassReferences(targetClass);
-                            }
+                        if (isJustField) {
+                            insertField(targetClass, psiFile, editor, offset, fieldList);
+                        } else {
+                            createClassAndField(targetClass, factory, name, fieldList, psiFile);
                         }
                     }
                 });
@@ -136,6 +133,41 @@ public class SimpleDialog extends JDialog {
 
     private void onCancel() {
         dispose();
+    }
+
+    private void insertField(PsiElement targetClass, PsiFile psiFile, Editor editor, int offset, List<String> fieldList) {
+        Document document = editor.getDocument();
+        int lineNumber = document.getLineNumber(offset);
+        for (String fieldString : fieldList) {
+            int nextLineStartOffset = document.getLineStartOffset(lineNumber + 1);
+            document.insertString(nextLineStartOffset, "\t" + fieldString);
+            lineNumber++;
+        }
+        importClass(targetClass, psiFile);
+    }
+
+    private void createClassAndField(PsiElement targetClass, PsiJavaParserFacade factory, String name, List<String> fieldList, PsiFile psiFile) {
+        if (targetClass != null) {
+            PsiClass classFromText = factory.createClassFromText(name, targetClass);
+            PsiClass[] classFromTextInnerClasses = classFromText.getInnerClasses();
+            if (classFromTextInnerClasses.length > 0) {
+                PsiClass innerClass = classFromTextInnerClasses[0];
+                if (innerClass != null && fieldList.size() > 0)
+                    for (String fieldString : fieldList) {
+                        innerClass.add(factory.createFieldFromText(fieldString, innerClass));
+                    }
+                if (innerClass != null) {
+                    targetClass.add(innerClass);
+                }
+                importClass(targetClass, psiFile);
+            }
+        }
+    }
+
+    private void importClass(PsiElement targetClass, PsiFile psiFile) {
+        JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
+        styleManager.optimizeImports(psiFile);
+        styleManager.shortenClassReferences(targetClass);
     }
 
 }
