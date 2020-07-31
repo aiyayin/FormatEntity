@@ -1,4 +1,4 @@
-package com.yin.swaggerformat;
+package com.yin.formatentity;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;

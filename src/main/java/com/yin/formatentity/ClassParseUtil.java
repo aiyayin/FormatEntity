@@ -1,4 +1,4 @@
-package com.yin.swaggerformat;
+package com.yin.formatentity;
 
 import org.jf.util.SparseArray;
 

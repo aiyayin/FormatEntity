@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>org.example.SwaggerFormat</id>
+    <id>org.example.FormatEntity</id>
     <name>SwaggerFormat</name>
     <vendor email="ying.fu@corp.to8to.com">yin</vendor>
     <depends>com.intellij.modules.lang</depends>
@@ -20,8 +20,8 @@
 
     <actions>
         <!-- Add your actions here -->
-        <action id="MainAction" class="com.yin.swaggerformat.MainAction" text="Swagger Gson format"
-                description="Swagger Gson format">
+        <action id="MainAction" class="com.yin.formatentity.MainAction" text="Format String as Entity"
+                description="Format Swagger yapi string  as Entity">
             <add-to-group group-id="GenerateGroup" anchor="last"/>
         </action>
     </actions>

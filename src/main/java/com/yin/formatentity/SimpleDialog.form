@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.yin.swaggerformat.SimpleDialog">
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.yin.formatentity.SimpleDialog">
   <grid id="cbd77" binding="contentPane" layout-manager="GridLayoutManager" row-count="4" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="10" left="10" bottom="10" right="10"/>
     <constraints>
@@ -95,7 +95,7 @@
           <text value="YapiEntityName"/>
         </properties>
       </component>
-      <component id="7a40a" class="javax.swing.JCheckBox" binding="justInsertAttributesCheckBox" default-binding="true">
+      <component id="7a40a" class="javax.swing.JCheckBox" binding="justAttributesCheckBox">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="2" use-parent-layout="false">
             <preferred-size width="254" height="22"/>
@@ -103,7 +103,7 @@
         </constraints>
         <properties>
           <margin top="2" left="2" bottom="2" right="2"/>
-          <text value="只生成属性"/>
+          <text value="只属性"/>
         </properties>
       </component>
     </children>

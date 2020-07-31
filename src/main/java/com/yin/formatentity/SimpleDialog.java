@@ -1,4 +1,4 @@
-package com.yin.swaggerformat;
+package com.yin.formatentity;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -25,7 +25,7 @@ public class SimpleDialog extends JDialog {
     private JButton buttonOK;
     private JComboBox comboBox1;
     private JPanel contentPane;
-    private JCheckBox justInsertAttributesCheckBox;
+    private JCheckBox justAttributesCheckBox;
     private Project project;
     private JTextArea textArea;
     private int type = YAPI;
@@ -82,7 +82,7 @@ public class SimpleDialog extends JDialog {
         if (textArea != null) {
             String text = textArea.getText().trim().toString();
             ClassParseUtil parseUtil = ClassParseUtil.getInstance(type);
-            boolean isJustField = justInsertAttributesCheckBox.isSelected();
+            boolean isJustField = justAttributesCheckBox.isSelected();
             String[] strings;
             if (isJustField) {
                 strings = new String[]{text};
@@ -165,6 +165,11 @@ public class SimpleDialog extends JDialog {
     }
 
     private void importClass(PsiElement targetClass, PsiFile psiFile) {
+        PsiDocumentManager mPsiDocumentManager = PsiDocumentManager.getInstance(project);
+        Document document = mPsiDocumentManager.getCachedDocument(psiFile);
+        if (document != null) {
+            mPsiDocumentManager.commitDocument(document);
+        }
         JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
         styleManager.optimizeImports(psiFile);
         styleManager.shortenClassReferences(targetClass);

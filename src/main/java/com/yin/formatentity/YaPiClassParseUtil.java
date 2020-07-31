@@ -1,4 +1,4 @@
-package com.yin.swaggerformat;
+package com.yin.formatentity;
 
 import org.apache.http.util.TextUtils;
 
@@ -55,7 +55,9 @@ public class YaPiClassParseUtil extends ClassParseUtil {
                         i = i + 2;
                         description = "";
                     } else {
-                        description = description + strings[i];
+                        if (!TextUtils.isEmpty(strings[i]) && !strings[i].contains("必须")) {
+                            description = description + strings[i];
+                        }
                         i++;
                     }
                 } while (i < stringsLength);
@@ -125,12 +127,16 @@ public class YaPiClassParseUtil extends ClassParseUtil {
         if (TextUtils.isEmpty(type)) {
             return "String";
         }
+        type = type.replaceAll(" ", "");
         if (type.contains("[") && type.contains("]")) {
             type = type.substring(0, type.indexOf("["));
-            type = "java.util.List<" + type + ">";
+            type = "List<" + type + ">";
+            if (type.contains("integer"))
+                return type.replace("integer", "Integer");
+        } else {
+            if (type.contains("integer"))
+                return type.replace("integer", "int");
         }
-        if (type.contains("integer"))
-            return type.replace("integer", "int");
         if (type.contains("string"))
             return type.replace("string", "String");
         if (type.contains("number"))
