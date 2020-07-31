@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>org.example.FormatEntity</id>
-    <name>SwaggerFormat</name>
+    <name>FormatEntity</name>
     <vendor email="ying.fu@corp.to8to.com">yin</vendor>
     <depends>com.intellij.modules.lang</depends>
     <!--    <description><![CDATA[-->

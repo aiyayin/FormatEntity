@@ -17,7 +17,7 @@ dependencies {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     version '2020.1.2'
-    pluginName 'SwaggerFormat'
+    pluginName 'FormatEntity'
     type 'AI'
     updateSinceUntilBuild false
     plugins 'android', 'java'
