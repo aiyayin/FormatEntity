@@ -1,4 +1,4 @@
-Swagger Format插件
+Format Entity插件
 
 这是一个IDEA 的插件，用来根据swagger ui中的model（或者yapi上直接复制的数据） 生成Java实体类。
 
