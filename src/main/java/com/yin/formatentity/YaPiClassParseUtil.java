@@ -15,8 +15,39 @@ public class YaPiClassParseUtil extends ClassParseUtil {
         if (checkInputStringIsNull(sourceString)) {
             return getDefaultClassName();
         }
+        StringBuilder result = createClass(inputName);
+        createField(sourceString, field);
+        return result.toString();
+    }
+
+    @Override
+    public String[] getVoNum(String inputString) {
+        return new String[]{inputString};
+    }
+
+    private void buildFieldString(String name, String type, CharSequence description, List<String> field) {
+        name = handleName(name);
+        type = handleType(type);
+
+        StringBuilder fieldString = new StringBuilder("public ");
+        fieldString.append(type);
+        fieldString.append(" ");
+        fieldString.append(name);
+        fieldString.append(";");
+        if (!TextUtils.isEmpty(description)) {
+            fieldString.append(" //");
+            fieldString.append(description);
+        }
+        fieldString.append("\n");
+        field.add(fieldString.toString());
+    }
+
+    private boolean checkInputStringIsNull(String inputString) {
+        return inputString == null || inputString.length() == 0;
+    }
+
+    private StringBuilder createClass(String inputName) {
         StringBuilder result = new StringBuilder("public class ");
-        int titleIndex = sourceString.indexOf("{");
         String fileName = inputName;
         if (TextUtils.isEmpty(inputName)) {
             fileName = getDefaultClassName();
@@ -26,10 +57,15 @@ public class YaPiClassParseUtil extends ClassParseUtil {
         result.append("{");
         result.append("\n");
         result.append("}");
+        return result;
+    }
+
+    private void createField(String sourceString, List<String> field) {
+        int titleIndex = sourceString.indexOf("{");
         if (field == null) {
             field = new ArrayList();
         }
-
+        Pattern patternstring = Pattern.compile("([A-Za-z]|\\[|\\]|_)+"); //去掉空格符合换行符
         try {
             String a = sourceString.substring(titleIndex + 1);
             Pattern pattern = Pattern.compile("(\\n|\\t)+"); //去掉空格符合换行符
@@ -43,7 +79,6 @@ public class YaPiClassParseUtil extends ClassParseUtil {
                 String description = "";
                 do {
                     String string = strings[i];
-                    Pattern patternstring = Pattern.compile("([A-Za-z]|\\[|\\]|_)+"); //去掉空格符合换行符
                     Matcher matcherstring = patternstring.matcher(string);
                     boolean matches = matcherstring.matches();
                     if (matches) {
@@ -67,11 +102,6 @@ public class YaPiClassParseUtil extends ClassParseUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return result.toString();
-    }
-
-    private boolean checkInputStringIsNull(String inputString) {
-        return inputString == null || inputString.length() == 0;
     }
 
     private String getDefaultClassName() {
@@ -85,23 +115,6 @@ public class YaPiClassParseUtil extends ClassParseUtil {
         return name;
     }
 
-    private void buildFieldString(String name, String type, CharSequence description, List<String> field) {
-        name = handleName(name);
-        type = handleType(type);
-
-        StringBuilder fieldString = new StringBuilder("public ");
-        fieldString.append(type);
-        fieldString.append(" ");
-        fieldString.append(name);
-        fieldString.append(";");
-        if (!TextUtils.isEmpty(description)) {
-            fieldString.append(" //");
-            fieldString.append(description);
-        }
-        fieldString.append("\n");
-        field.add(fieldString.toString());
-    }
-
     private String handleSpace(String name) {
         int index = name.indexOf(" ", 0);
         while (index >= 0 && (index + 2) < name.length()) {
@@ -109,16 +122,6 @@ public class YaPiClassParseUtil extends ClassParseUtil {
             name = name.substring(0, index) + c.toUpperCase() + name.substring(index + 2);
             index = name.indexOf(" ", index);
             index++;
-        }
-        return name;
-    }
-
-    private String handleUnderline(String name) {
-        int index = name.indexOf("_", 0);
-        while (index >= 0 && (index + 2) < name.length()) {
-            String c = String.valueOf(name.charAt(index + 1));
-            name = name.substring(0, index) + c.toUpperCase() + name.substring(index + 2);
-            index = name.indexOf("_", index);
         }
         return name;
     }
@@ -144,9 +147,14 @@ public class YaPiClassParseUtil extends ClassParseUtil {
         return type;
     }
 
-    @Override
-    public String[] getVoNum(String inputString) {
-        return new String[]{inputString};
+    private String handleUnderline(String name) {
+        int index = name.indexOf("_", 0);
+        while (index >= 0 && (index + 2) < name.length()) {
+            String c = String.valueOf(name.charAt(index + 1));
+            name = name.substring(0, index) + c.toUpperCase() + name.substring(index + 2);
+            index = name.indexOf("_", index);
+        }
+        return name;
     }
 
 

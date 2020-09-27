@@ -1,16 +1,10 @@
 package com.yin.formatentity;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.psi.*;
-import com.intellij.psi.codeStyle.JavaCodeStyleManager;
-import com.intellij.psi.util.PsiTreeUtil;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -97,18 +91,10 @@ public class SimpleDialog extends JDialog {
 
             project = anActionEvent.getData(PlatformDataKeys.PROJECT);
 
-            PsiFile psiFile = anActionEvent.getData(LangDataKeys.PSI_FILE);
-            Editor editor = anActionEvent.getData(PlatformDataKeys.EDITOR);
-
-            if (psiFile == null || editor == null || project == null) {
+            CreateClassHelper createClassHelper = new CreateClassHelper(project,anActionEvent);
+            if (createClassHelper.checkNull()) {
                 return;
             }
-
-
-            int offset = editor.getCaretModel().getOffset();
-            PsiElement element = psiFile.findElementAt(offset);
-            PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
-            PsiClass targetClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
             for (int i = strings.length - 1; i >= 0; i--) {
                 String txt = strings[i];
                 List<String> fieldList = new ArrayList<>();
@@ -118,9 +104,9 @@ public class SimpleDialog extends JDialog {
                     @Override
                     public void run() {
                         if (isJustField) {
-                            insertField(targetClass, psiFile, editor, offset, fieldList);
+                            createClassHelper.insertField(fieldList);
                         } else {
-                            createClassAndField(targetClass, factory, name, fieldList, psiFile);
+                            createClassHelper.createClassAndField(name, fieldList);
                         }
                     }
                 });
@@ -135,44 +121,6 @@ public class SimpleDialog extends JDialog {
         dispose();
     }
 
-    private void insertField(PsiElement targetClass, PsiFile psiFile, Editor editor, int offset, List<String> fieldList) {
-        Document document = editor.getDocument();
-        int lineNumber = document.getLineNumber(offset);
-        for (String fieldString : fieldList) {
-            int nextLineStartOffset = document.getLineStartOffset(lineNumber + 1);
-            document.insertString(nextLineStartOffset, "\t" + fieldString);
-            lineNumber++;
-        }
-        importClass(targetClass, psiFile);
-    }
 
-    private void createClassAndField(PsiElement targetClass, PsiJavaParserFacade factory, String name, List<String> fieldList, PsiFile psiFile) {
-        if (targetClass != null) {
-            PsiClass classFromText = factory.createClassFromText(name, targetClass);
-            PsiClass[] classFromTextInnerClasses = classFromText.getInnerClasses();
-            if (classFromTextInnerClasses.length > 0) {
-                PsiClass innerClass = classFromTextInnerClasses[0];
-                if (innerClass != null && fieldList.size() > 0)
-                    for (String fieldString : fieldList) {
-                        innerClass.add(factory.createFieldFromText(fieldString, innerClass));
-                    }
-                if (innerClass != null) {
-                    targetClass.add(innerClass);
-                }
-                importClass(targetClass, psiFile);
-            }
-        }
-    }
-
-    private void importClass(PsiElement targetClass, PsiFile psiFile) {
-        PsiDocumentManager mPsiDocumentManager = PsiDocumentManager.getInstance(project);
-        Document document = mPsiDocumentManager.getCachedDocument(psiFile);
-        if (document != null) {
-            mPsiDocumentManager.commitDocument(document);
-        }
-        JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
-        styleManager.optimizeImports(psiFile);
-        styleManager.shortenClassReferences(targetClass);
-    }
 
 }
