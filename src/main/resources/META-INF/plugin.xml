@@ -24,5 +24,9 @@
                 description="Format Swagger yapi string  as Entity">
             <add-to-group group-id="GenerateGroup" anchor="last"/>
         </action>
+
+        <action id="PointAction" class="com.yin.pointutil.PointAction" text="Point Util">
+            <add-to-group group-id="GenerateGroup" anchor="last"/>
+        </action>
     </actions>
 </idea-plugin>
