@@ -1,6 +1,7 @@
 <idea-plugin>
     <id>org.example.FormatEntity</id>
     <name>FormatEntity</name>
+    <version>1.0</version>
     <vendor email="ying.fu@corp.to8to.com">yin</vendor>
     <depends>com.intellij.modules.lang</depends>
     <!--    <description><![CDATA[-->
