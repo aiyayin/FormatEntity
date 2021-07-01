@@ -75,12 +75,12 @@ public class PointDialog extends JDialog {
                 return;
             }
 
-            List<String> fieldList = new ArrayList<>();
-            parseUtil.getClassNameStringAndField(text, fieldList);
+
+            String string = parseUtil.getClassNameStringAndField(text);
             WriteCommandAction.runWriteCommandAction(project, new Runnable() {
                 @Override
                 public void run() {
-                    createClassHelper.insertField(fieldList);
+                    createClassHelper.insertString(string);
                 }
             });
 

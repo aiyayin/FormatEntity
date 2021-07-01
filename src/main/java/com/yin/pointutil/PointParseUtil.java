@@ -1,114 +1,67 @@
 package com.yin.pointutil;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.util.TextUtils;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PointParseUtil {
 
-    public void getClassNameStringAndField(String sourceString, List<String> field) {
+    public String getClassNameStringAndField(String sourceString) {
         if (checkInputStringIsNull(sourceString)) {
-            return;
+            return "";
         }
 
-        if (field == null) {
-            field = new ArrayList();
-        }
+        StringBuilder stringBuilder = new StringBuilder();
         try {
-            String[] strings = sourceString.split(" ");
-            if (strings.length > 0)
-                for (String line : strings) {
-                    if (line.contains("optional)")) {
-                        line = line.replaceAll("\n", "");
-                        StringBuilder fieldString = new StringBuilder("public ");
-                        int index1 = line.indexOf("(");
-                        int index2 = line.indexOf(",");
-                        int index3 = line.indexOf(":");
-                        String name = "";
-                        if (index1 > 0) {
-                            name = line.substring(0, index1);
-                        }
-                        name = handleName(name);
-                        String type = "";
-                        if (index2 > index1) {
-                            type = line.substring(index1 + 1, index2);
-                        }
-                        type = handleType(type);
-                        String description = "";
-                        if (index3 > index2 && (index3 + 1) < line.length()) {
-                            description = line.substring(index3 + 1);
-                        }
-                        fieldString.append(type);
-                        fieldString.append(" ");
-                        fieldString.append(name);
-                        fieldString.append(";");
-                        if (!TextUtils.isEmpty(description)) {
-                            fieldString.append(" //");
-                            fieldString.append(description);
-                        }
-                        fieldString.append("\n");
-                        field.add(fieldString.toString());
-                    }
-                }
+            String[] strings = sourceString.split("\t");
+            if (strings.length > 0) {
 
+                buildEventName(strings[0], stringBuilder);
+
+                for (int i = 1; i < strings.length; i = i + 3) {
+                    String element1 = strings[i + 1];
+                    boolean canIgnore = "page_uid".equals(element1) || "page_refer_uid".equals(element1);
+                    if (canIgnore) {
+                        continue;
+                    }
+                    stringBuilder.append("\t\t.putString(\"").append(element1).append("\",");
+                    String element2 = strings[i + 2];
+                    element2 = element2.replace("\n", "");
+                    Pattern patternString = Pattern.compile("([0-9A-Za-z]|\\[|\\]|_)+"); //去掉空格符合换行符
+                    Matcher matcherString = patternString.matcher(element2);
+                    boolean matches = matcherString.matches();
+                    if (matches) {
+                        stringBuilder.append("\"");
+                        stringBuilder.append(element2);
+                        stringBuilder.append("\"");
+                        stringBuilder.append(")\n");
+                    } else {
+                        stringBuilder.append("\"\"");
+                        stringBuilder.append(")");
+                        stringBuilder.append("//").append(element2).append("\n");
+                    }
+
+
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        stringBuilder.append("\t\t.report();\n");
+        return stringBuilder.toString();
+    }
 
+    private void buildEventName(String eventName, StringBuilder stringBuilder) {
+        if (eventName.contains("app")) {
+            eventName = eventName.replaceFirst("a", "A");
+            stringBuilder.append(eventName).append("Event.build()");
+        } else {
+            stringBuilder.append("AppWidgetEvent").append(".build(").append(eventName).append(")");
+        }
+        stringBuilder.append("\n");
     }
 
     private boolean checkInputStringIsNull(String inputString) {
         return inputString == null || inputString.length() == 0;
-    }
-
-
-    private String handleName(String name) {
-        name = handleSpace(name);
-        name = handleUnderline(name);
-        return name;
-    }
-
-    private String handleType(String type) {
-        if (TextUtils.isEmpty(type)) {
-            return "String";
-        }
-        if (type.contains("Array")) {
-            type = type.replace("Array", "java.util.List");
-            type = type.replace("[", "<");
-            type = type.replace("]", ">");
-        }
-        if (type.contains("integer"))
-            return type.replace("integer", "int");
-        if (type.contains("string"))
-            return type.replace("string", "String");
-        if (type.contains("number"))
-            return type.replace("number", "String");
-        return type;
-    }
-
-    private String handleSpace(String name) {
-        int index = name.indexOf(" ", 0);
-        while (index >= 0 && (index + 2) < name.length()) {
-            String c = String.valueOf(name.charAt(index + 1));
-            name = name.substring(0, index) + c.toUpperCase() + name.substring(index + 2);
-            index = name.indexOf(" ", index);
-            index++;
-        }
-        return name;
-    }
-
-    private String handleUnderline(String name) {
-        int index = name.indexOf("_", 0);
-        while (index >= 0 && (index + 2) < name.length()) {
-            String c = String.valueOf(name.charAt(index + 1));
-            name = name.substring(0, index) + c.toUpperCase() + name.substring(index + 2);
-            index = name.indexOf("_", index);
-        }
-        return name;
     }
 
 

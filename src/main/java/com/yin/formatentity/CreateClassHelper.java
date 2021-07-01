@@ -74,4 +74,14 @@ public class CreateClassHelper {
         }
         importClass();
     }
+
+    public void insertString(String s) {
+        Document document = editor.getDocument();
+        int lineNumber = document.getLineNumber(offset);
+
+        int nextLineStartOffset = document.getLineStartOffset(lineNumber + 1);
+        document.insertString(nextLineStartOffset, "\t" + s);
+
+        importClass();
+    }
 }

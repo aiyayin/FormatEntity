@@ -71,7 +71,7 @@
           </grid>
         </constraints>
         <properties>
-          <text value="请输入内容"/>
+          <text value="请复制埋点文档中 event 到 value 四列"/>
         </properties>
       </component>
     </children>
