@@ -24,6 +24,7 @@ public class SimpleDialog extends JDialog {
     private JTextArea textArea;
     private int type = YAPI;
     private JTextField yapiEntityNameTextField;
+    private JCheckBox isKotlinCheckBox;
 
     public SimpleDialog(AnActionEvent anActionEvent) {
         this.anActionEvent = anActionEvent;
@@ -75,8 +76,9 @@ public class SimpleDialog extends JDialog {
         // add your code here
         if (textArea != null) {
             String text = textArea.getText().trim().toString();
-            ClassParseUtil parseUtil = ClassParseUtil.getInstance(type);
             boolean isJustField = justAttributesCheckBox.isSelected();
+            boolean isKotlin = isKotlinCheckBox.isSelected();
+            ClassParseUtil parseUtil = ClassParseUtil.getInstance(type, isKotlin);
             String[] strings;
             if (isJustField) {
                 strings = new String[]{text};
@@ -91,27 +93,52 @@ public class SimpleDialog extends JDialog {
 
             project = anActionEvent.getData(PlatformDataKeys.PROJECT);
 
-            CreateClassHelper createClassHelper = new CreateClassHelper(project,anActionEvent);
-            if (createClassHelper.checkNull()) {
-                return;
-            }
-            for (int i = strings.length - 1; i >= 0; i--) {
-                String txt = strings[i];
-                List<String> fieldList = new ArrayList<>();
-                String name = parseUtil.getClassNameStringAndField(type == YAPI ? yapiEntityNameTextField.getText().trim() : "", txt, fieldList);
+            if (isKotlin) {
+                CreateKotlinClassHelper createClassHelper = new CreateKotlinClassHelper(project, anActionEvent);
+                if (createClassHelper.checkNull()) {
+                    return;
+                }
+                for (int i = strings.length - 1; i >= 0; i--) {
+                    String txt = strings[i];
+                    List<String> fieldList = new ArrayList<>();
+                    String name = parseUtil.getClassNameStringAndField(type == YAPI ? yapiEntityNameTextField.getText().trim() : "", txt, fieldList);
 
-                WriteCommandAction.runWriteCommandAction(project, new Runnable() {
-                    @Override
-                    public void run() {
-                        if (isJustField) {
-                            createClassHelper.insertField(fieldList);
-                        } else {
-                            createClassHelper.createClassAndField(name, fieldList);
+                    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+                        @Override
+                        public void run() {
+                            if (isJustField) {
+                                createClassHelper.insertField(fieldList);
+                            } else {
+                                createClassHelper.createClassAndField(name, fieldList);
+                            }
                         }
-                    }
-                });
+                    });
 
+                }
+            } else {
+                CreateClassHelper createClassHelper = new CreateClassHelper(project, anActionEvent);
+                if (createClassHelper.checkNull()) {
+                    return;
+                }
+                for (int i = strings.length - 1; i >= 0; i--) {
+                    String txt = strings[i];
+                    List<String> fieldList = new ArrayList<>();
+                    String name = parseUtil.getClassNameStringAndField(type == YAPI ? yapiEntityNameTextField.getText().trim() : "", txt, fieldList);
+
+                    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+                        @Override
+                        public void run() {
+                            if (isJustField) {
+                                createClassHelper.insertField(fieldList);
+                            } else {
+                                createClassHelper.createClassAndField(name, fieldList);
+                            }
+                        }
+                    });
+
+                }
             }
+
 
             dispose();
         }
@@ -120,7 +147,6 @@ public class SimpleDialog extends JDialog {
     private void onCancel() {
         dispose();
     }
-
 
 
 }

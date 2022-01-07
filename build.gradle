@@ -1,10 +1,12 @@
 plugins {
+    id 'idea'
     id 'java'
-    id 'org.jetbrains.intellij' version '0.4.21'
+    id("org.jetbrains.intellij") version "0.7.3"
+    id("org.jetbrains.kotlin.jvm") version "1.6.0"
 }
 
 group 'com.yin'
-version '1.0.1'
+version '1.0.2'
 
 repositories {
     mavenCentral()
@@ -20,11 +22,15 @@ intellij {
     pluginName 'FormatEntity'
     type 'AI'
     updateSinceUntilBuild false
-    plugins 'android', 'java'
+    plugins 'android', 'java', 'Kotlin'
 
     patchPluginXml {
         changeNotes """
       Add change notes here.<br>
       <em>most HTML tags may be used</em>"""
     }
+}
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }

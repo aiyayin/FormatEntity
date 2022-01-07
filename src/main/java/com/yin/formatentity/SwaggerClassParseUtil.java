@@ -3,8 +3,6 @@ package com.yin.formatentity;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,18 +12,8 @@ public class SwaggerClassParseUtil extends ClassParseUtil {
         if (checkInputStringIsNull(sourceString)) {
             return getDefaultClassName();
         }
-        StringBuilder result = new StringBuilder("public class ");
         int titleIndex = sourceString.indexOf("{");
-        String fileName = inputName;
-        if (TextUtils.isEmpty(inputName)) {
-            fileName = titleIndex > 0 ? sourceString.substring(0, titleIndex) : getDefaultClassName();
-            fileName = fileName.replaceAll("\\s*", "");
-        }
-        fileName = handleName(fileName);
-        result.append(fileName);
-        result.append("{");
-        result.append("\n");
-        result.append("}");
+        StringBuilder result = createClass(titleIndex, inputName, sourceString);
         if (field == null) {
             field = new ArrayList();
         }
@@ -37,7 +25,7 @@ public class SwaggerClassParseUtil extends ClassParseUtil {
                 for (String line : strings) {
                     if (line.contains("optional)")) {
                         line = line.replaceAll("\n", "");
-                        StringBuilder fieldString = new StringBuilder("public ");
+
                         int index1 = line.indexOf("(");
                         int index2 = line.indexOf(",");
                         int index3 = line.indexOf(":");
@@ -55,16 +43,7 @@ public class SwaggerClassParseUtil extends ClassParseUtil {
                         if (index3 > index2 && (index3 + 1) < line.length()) {
                             description = line.substring(index3 + 1);
                         }
-                        fieldString.append(type);
-                        fieldString.append(" ");
-                        fieldString.append(name);
-                        fieldString.append(";");
-                        if (!TextUtils.isEmpty(description)) {
-                            fieldString.append(" //");
-                            fieldString.append(description);
-                        }
-                        fieldString.append("\n");
-                        field.add(fieldString.toString());
+                        buildFieldString(name, type, description, field);
                     }
                 }
 
@@ -74,22 +53,24 @@ public class SwaggerClassParseUtil extends ClassParseUtil {
         return result.toString();
     }
 
-    private boolean checkInputStringIsNull(String inputString) {
-        return inputString == null || inputString.length() == 0;
+    private StringBuilder createClass(int titleIndex, String inputName, String sourceString) {
+        StringBuilder result = new StringBuilder("public class ");
+
+        String fileName = inputName;
+        if (TextUtils.isEmpty(inputName)) {
+            fileName = titleIndex > 0 ? sourceString.substring(0, titleIndex) : getDefaultClassName();
+            fileName = fileName.replaceAll("\\s*", "");
+        }
+        fileName = handleName(fileName);
+        result.append(fileName);
+        result.append("{");
+        result.append("\n");
+        result.append("}");
+        return result;
     }
 
-    private String getDefaultClassName() {
-        String name = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd_HH_mm_ss"));
-        return "Entity" + name + "VO";
-    }
 
-    private String handleName(String name) {
-        name = handleSpace(name);
-        name = handleUnderline(name);
-        return name;
-    }
-
-    private String handleType(String type) {
+    protected String handleType(String type) {
         if (TextUtils.isEmpty(type)) {
             return "String";
         }
@@ -107,26 +88,6 @@ public class SwaggerClassParseUtil extends ClassParseUtil {
         return type;
     }
 
-    private String handleSpace(String name) {
-        int index = name.indexOf(" ", 0);
-        while (index >= 0 && (index + 2) < name.length()) {
-            String c = String.valueOf(name.charAt(index + 1));
-            name = name.substring(0, index) + c.toUpperCase() + name.substring(index + 2);
-            index = name.indexOf(" ", index);
-            index++;
-        }
-        return name;
-    }
-
-    private String handleUnderline(String name) {
-        int index = name.indexOf("_", 0);
-        while (index >= 0 && (index + 2) < name.length()) {
-            String c = String.valueOf(name.charAt(index + 1));
-            name = name.substring(0, index) + c.toUpperCase() + name.substring(index + 2);
-            index = name.indexOf("_", index);
-        }
-        return name;
-    }
 
     @Override
     public String[] getVoNum(String inputString) {
