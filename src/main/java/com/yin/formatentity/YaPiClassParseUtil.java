@@ -33,7 +33,7 @@ public class YaPiClassParseUtil extends ClassParseUtil {
         }
         fileName = handleName(fileName);
         result.append(fileName);
-        result.append("{");
+        result.append(" {");
         result.append("\n");
         result.append("}");
         return result;

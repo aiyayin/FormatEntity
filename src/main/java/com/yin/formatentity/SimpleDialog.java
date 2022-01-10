@@ -93,6 +93,7 @@ public class SimpleDialog extends JDialog {
 
             project = anActionEvent.getData(PlatformDataKeys.PROJECT);
 
+            String className = yapiEntityNameTextField.getText().trim();
             if (isKotlin) {
                 CreateKotlinClassHelper createClassHelper = new CreateKotlinClassHelper(project, anActionEvent);
                 if (createClassHelper.checkNull()) {
@@ -101,7 +102,7 @@ public class SimpleDialog extends JDialog {
                 for (int i = strings.length - 1; i >= 0; i--) {
                     String txt = strings[i];
                     List<String> fieldList = new ArrayList<>();
-                    String name = parseUtil.getClassNameStringAndField(type == YAPI ? yapiEntityNameTextField.getText().trim() : "", txt, fieldList);
+                    String nameStr = parseUtil.getClassNameStringAndField(type == YAPI ? className : "", txt, fieldList);
 
                     WriteCommandAction.runWriteCommandAction(project, new Runnable() {
                         @Override
@@ -109,7 +110,7 @@ public class SimpleDialog extends JDialog {
                             if (isJustField) {
                                 createClassHelper.insertField(fieldList);
                             } else {
-                                createClassHelper.createClassAndField(name, fieldList);
+                                createClassHelper.createClassAndField(nameStr, fieldList);
                             }
                         }
                     });
@@ -123,7 +124,7 @@ public class SimpleDialog extends JDialog {
                 for (int i = strings.length - 1; i >= 0; i--) {
                     String txt = strings[i];
                     List<String> fieldList = new ArrayList<>();
-                    String name = parseUtil.getClassNameStringAndField(type == YAPI ? yapiEntityNameTextField.getText().trim() : "", txt, fieldList);
+                    String nameStr = parseUtil.getClassNameStringAndField(type == YAPI ? className : "", txt, fieldList);
 
                     WriteCommandAction.runWriteCommandAction(project, new Runnable() {
                         @Override
@@ -131,7 +132,7 @@ public class SimpleDialog extends JDialog {
                             if (isJustField) {
                                 createClassHelper.insertField(fieldList);
                             } else {
-                                createClassHelper.createClassAndField(name, fieldList);
+                                createClassHelper.createClassAndField(className, nameStr, fieldList);
                             }
                         }
                     });

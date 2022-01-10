@@ -25,11 +25,11 @@
         <!-- Add your actions here -->
         <action id="yin.MainAction" class="com.yin.formatentity.MainAction" text="转换成实体类"
                 description="Format Swagger yapi string  as Entity">
-            <add-to-group group-id="ToolsMenu" anchor="first"/>
+            <add-to-group group-id="GenerateGroup" anchor="first"/>
         </action>
 
         <action id="yin.PointAction" class="com.yin.pointutil.PointAction" text="埋点工具" description="复制 黏贴 生成 埋点代码">
-            <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="yin.MainAction"/>
+            <add-to-group group-id="GenerateGroup" anchor="after" relative-to-action="yin.MainAction"/>
         </action>
 
 <!--        <action id="TestAction" class="com.yin.TestAction" text="TestAction" description="TestAction">-->
