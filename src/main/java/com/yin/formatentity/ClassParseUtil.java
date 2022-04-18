@@ -88,7 +88,6 @@ public abstract class ClassParseUtil {
         fieldString.append(" ");
         fieldString.append(name);
         fieldString.append(";");
-
         fieldString.append("\n");
         field.add(fieldString.toString());
     }

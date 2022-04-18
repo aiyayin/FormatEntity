@@ -23,6 +23,8 @@ public class YaPiKotlinClassParseUtil extends YaPiClassParseUtil {
         }
         if (type.contains("string"))
             return type.replace("string", "String");
+        if (type.contains("object"))
+            return type.replace("object", "Any");
         if (type.contains("number"))
             return type.replace("number", "String");
         return type;
@@ -45,7 +47,6 @@ public class YaPiKotlinClassParseUtil extends YaPiClassParseUtil {
         fieldString.append(" : ");
         fieldString.append(type);
         fieldString.append("? = null,");
-
         fieldString.append("\n");
         field.add(fieldString.toString());
     }
@@ -60,7 +61,7 @@ public class YaPiKotlinClassParseUtil extends YaPiClassParseUtil {
         fileName = handleName(fileName);
         result.append(fileName);
         result.append("(");
-        result.append("\n");
+        result.append("\n\n");
         result.append(")\n");
         return result;
     }

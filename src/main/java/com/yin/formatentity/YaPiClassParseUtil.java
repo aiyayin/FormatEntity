@@ -49,7 +49,7 @@ public class YaPiClassParseUtil extends ClassParseUtil {
 
             String[] line = a.split("[A-Za-z0-9_]*\\t([A-Za-z]|\\[|\\]| )*\\t\\n");
 
-            Pattern pattern = Pattern.compile("[A-Za-z0-9_]*\\t[A-Za-z]*\\t\\n");
+            Pattern pattern = Pattern.compile("[A-Za-z0-9_]*\\t([A-Za-z]|\\[|\\]| )*\\t\\n");
             Matcher matcher = pattern.matcher(a);
 
             int j = 0;

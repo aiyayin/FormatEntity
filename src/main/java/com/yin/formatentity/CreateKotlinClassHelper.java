@@ -6,25 +6,22 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.kotlin.psi.KtClass;
-import org.jetbrains.kotlin.psi.KtPsiFactory;
-import org.jetbrains.kotlin.psi.KtPsiUtil;
-import org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade;
 
 import java.util.List;
 
 public class CreateKotlinClassHelper {
-    private Editor editor;
-    private PsiElement element;
-    private PsiElementFactory factory;
-    private int offset;
-    private Project project;
-    private PsiFile psiFile;
-    private KtClass targetClass;
+    private final Editor editor;
+    private final PsiElement element;
+    private final PsiElementFactory factory;
+    private final int offset;
+    private final Project project;
+    private final PsiFile psiFile;
+    private final KtClass targetClass;
+    private int startLineNumber;
 
     public CreateKotlinClassHelper(Project project, AnActionEvent anActionEvent) {
         this.project = project;
@@ -53,12 +50,17 @@ public class CreateKotlinClassHelper {
         }
         JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
         styleManager.optimizeImports(psiFile);
-        styleManager.shortenClassReferences(targetClass);
+        if (targetClass != null) {
+            styleManager.shortenClassReferences(targetClass);
+        }
     }
 
     public void insertField(List<String> fieldList) {
         Document document = editor.getDocument();
-        int lineNumber = document.getLineNumber(offset) + 1;
+        int lineNumber = 0;
+        if (startLineNumber > 0) {
+            lineNumber = document.getLineNumber(offset) + 1;
+        }
         for (int i = 0; i < fieldList.size(); i++) {
             String fieldString = fieldList.get(i);
             if (i == fieldList.size() - 1) {
@@ -74,10 +76,12 @@ public class CreateKotlinClassHelper {
 
     public void insertString(String s) {
         Document document = editor.getDocument();
-        int lineNumber = document.getLineNumber(offset);
-
-        int nextLineStartOffset = document.getLineStartOffset(lineNumber + 1);
-        document.insertString(nextLineStartOffset, "\t" + s);
+        startLineNumber = document.getLineNumber(offset);
+        int nextLineStartOffset = 0;
+        if (startLineNumber > 0) {
+            nextLineStartOffset = document.getLineStartOffset(startLineNumber + 1);
+        }
+        document.insertString(nextLineStartOffset, s);
 
         importClass();
     }
