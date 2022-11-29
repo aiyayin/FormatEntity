@@ -56,25 +56,19 @@ public class YaPiClassParseUtil extends ClassParseUtil {
 
             while (matcher.find()) {
                 String s = matcher.group();
-
-                Pattern patternS = Pattern.compile("(\\n|\\t)+"); //去掉空格符合换行符
-                Matcher matcherS = patternS.matcher(s);
-                s = matcherS.replaceAll("#");
-                String[] strings = s.split("#");
+                String[] strings = s.split("(\\n|\\t)+");
 
                 j++;
 
                 String name = strings[0];
                 String type = strings[1];
-                String description = line[j];
+
+                String[] stringD = line[j].split("(\\n|\\t)+");
+                String description = stringD[1];
 
                 name = handleName(name);
                 type = handleType(type);
-                if (!TextUtils.isEmpty(description)) {
-                    description = description.replaceAll("\\n", " ");
-                    description = description.replaceAll("\\t", " ");
-                    description = description.replaceAll("必须", " ");
-                }
+
                 buildFieldString(name, type, description, field);
             }
 
